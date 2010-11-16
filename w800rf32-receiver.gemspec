@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Peter Hulst"]
-  s.date = %q{2010-11-15}
+  s.date = %q{2010-11-16}
   s.description = %q{This library provides functionality to communicate with the
 W800RF32 receiver by WGL & Associates. The author of this library is not associated
 with WGL}
