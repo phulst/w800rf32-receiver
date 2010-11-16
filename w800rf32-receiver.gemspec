@@ -21,14 +21,29 @@ with WGL}
   s.files = [
     ".document",
      ".gitignore",
+     ".idea/.rakeTasks",
+     ".idea/encodings.xml",
+     ".idea/misc.xml",
+     ".idea/modules.xml",
+     ".idea/vcs.xml",
+     ".idea/w800rf32-receiver.iml",
+     ".idea/workspace.xml",
      "LICENSE",
      "README.rdoc",
      "Rakefile",
      "VERSION",
+     "lib/ds10a_parser.rb",
+     "lib/generic_x10_parser.rb",
+     "lib/kr10a_parser.rb",
      "lib/serial_driver.rb",
      "lib/w800rf32-receiver.rb",
+     "lib/x10_constants.rb",
      "test/helper.rb",
-     "test/test_w800rf32-receiver.rb"
+     "test/test_ds10a_parser.rb",
+     "test/test_generic_x10_parser.rb",
+     "test/test_kr10a_parser.rb",
+     "test/test_w800rf32-receiver.rb",
+     "w800rf32-receiver.gemspec"
   ]
   s.homepage = %q{http://github.com/phulst/w800rf32-receiver}
   s.rdoc_options = ["--charset=UTF-8"]
