@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="RUBY_MODULE" version="4">
+  <component name="NewModuleRootManager">
+    <content url="file://$MODULE_DIR$" />
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" scope="PROVIDED" name="[gem] rake (v0.8.7, /Users/peter/.rvm/gems/ruby-1.9.2-rc2@global/gems/rake-0.8.7)" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="[gem] test-unit (v2.1.1, /Users/peter/.rvm/gems/ruby-1.9.2-rc2@global/gems/test-unit-2.1.1)" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="[gem] serialport (v1.0.4, /Users/peter/.rvm/gems/ruby-1.9.2-rc2@global/gems/serialport-1.0.4)" level="application" />
+  </component>
+</module>
+

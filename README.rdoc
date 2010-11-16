@@ -1,6 +1,166 @@
 = w800rf32-receiver
 
-Description goes here.
+This library will allow you to easily communicate with a w800rf32 X10 receiver using a
+serial connection. This will make it very easy to write ruby code that should do certain things
+on input from (cheap) wireless remote controls and sensors.
+
+From the wgldesigns.com website:
+
+"The W800 family of RF receivers are designed to receive X10 RF signals generated from X10 products:
+Palm Pad remotes, key chain remotes, Hawkeye motion detectors, and many, many other X10 RF devices.
+
+The W800 then sends these commands directly to your computer's RS232 or USB port, depending on
+the model purchased. This allows your computer to receive X10 RF commands from remotes and motion
+detectors directly, without having to broadcast any power line commands, thus minimizing power
+line clutter and improving home automation response times by bypassing the usual power line delay."
+
+This library makes receiving events from X10 wireless devices such as remote keypads,
+door/window sensors and motion sensors super easy.
+RF communication from many common X10 RF devices is supported, such as:
+
+* Many generic X10 wireless remotes, like the PalmPad remote control HR12A and the SlimFire remote KR19A
+* The well known Eagle Eye MS14A and Active Eye MS16A motion sensors
+* The DS10A wireless Door/Window sensor
+
+These wireless keypads/sensors can be bought at SmartHome.com or through various ebay sellers for
+less than $10 a piece. Use them to build your own security system, or for anything else you can think of.
+The DS10A wireless sensor is great for hardware hackers and can be used in any scenario where you need
+a wireless switch input: for your garage door, cat door, mailbox, IR beam, etc.
+
+== Installation ==
+
+install this library as follows:
+
+  # to install the serialport dependency
+  gem sources -a http://gemcutter.org
+  sudo gem install serialport
+
+  # install w800 library
+  gem install w800rf32-receiver
+
+Your mileage with the serialport gem may vary, depending on your OS and ruby version. The 'official' version
+of serialport apparently doesn't work well with Ruby 1.9, but there are several clones out there with
+patches for ruby 1.9. The port by Hector Parra (version 1.0.4) is working well for me.
+
+== Usage ==
+
+Pretty straightforward.
+
+  require 'rubygems'
+  require 'w800rf32-receiver'
+
+  receiver = W800rf32Receiver.new("/dev/ttyS2", :debug_enabled => false, :filter_dups_within_secs => 5)
+  receiver.on_message do |msg|
+    puts "received message:"
+    p msg
+  end
+
+That's all. Replace the '/dev/ttyS2' with the correct serial port for your system and trigger one of your
+X10 devices to send a command.
+
+The msg object passed in is a simple hash of properties containing the device type, state and addresses.
+More info on that below.
+
+The :debug_enabled and :filter_dups_within_secs properties are both optional. If :debug_enabled is set
+to true, the library will print the raw serial data to the console for debugging.
+If :filter_dups_within_secs is set to a value greater than 0, the receiver library will remove all
+duplicate packets, thus reducing the number of callbacks that on_message makes greatly. In the above
+example, with value 5, the driver will limit callbacks for the exact same packet to at most once
+every 5 seconds. Without using this property, you may notice that a single button press on a remote
+may actually cause 5 or 6 duplicate packets to be transmitted.
+
+IMPORTANT: the on_message method will go into an infinite loop, as it will poll the serial port
+continuously for new packets, then process and return them, then wait for the next packet to come in.
+If there's other stuff you need your program to do in the meantime, then make sure you call on_message
+on a separate thread. So don't call this from a Rails controller or something like that, unless you
+spawn a new thread first before you call it.
+
+
+=== Generic X10 transmitters ===
+
+When packets are received from generic X10 wireless transmitters (like the HR12 PalmPad remote, the SlimFire
+remote KR19A, or the MS14A/MS16A motion sensors), the message received will look like this:
+
+  {:device_type=>"X10", :house_code=>"A", :unit=>1, , :state=>"ON"}
+
+:house_code will contain a value between 'A' and 'P', while :unit will have a value between 1 and 16.
+State will be 'ON' or 'OFF'
+when the dim command is received, the :unit property will be missing but there will be a :dim property
+with value 'BRIGHT' or 'DIM'
+
+Note that this receiver library can't distinguish between many different types of X10 wireless devices,
+simply because their data protocol is identical for all types and the data packets don't contain any
+device identifier other than the unit and house code. It's therefore up to the developer to make the
+determination on whether this is a remote control or a motion sensor, etc, based on the unit and
+house_code of the transmitters.
+
+Note that constants are defined in X10Constants, and it's better to test against X10Constants::LightLevel::BRIGHT
+than 'BRIGHT'
+
+=== DS10A Door/Window sensor support ===
+
+These little boxes are a hardware hacker's dream and the main reason for me to purchase the W800RF32 receiver.
+Most of the standard X10 wireless receivers (like the widely used CM17A Firecracker) can not handle the data
+packets from the DS10A so the w800 is actually one of only a few options for interfacing these devices with
+a computer.
+
+This library's output for a DS10A looks as follows:
+
+  {:device_type=>"DS10A", :state=>"OPEN", :address=>"f8", :min_delay=>true, :low_bat=>false}
+
+:address is a 2 digit hex address transmitted as a string
+:state will be either 'OPEN' or 'CLOSED'. When used with the provided magnetic reed switches on a window or
+door, there will be a closed loop and the state will be 'CLOSED'.
+:min_delay will be true if the slide switch on the DS10A is set to 'min'.
+:low_bat will be true if the DS10A is low on batteries.
+
+Note that the DS10A will send it's status about once an hour, even if it's state never changed.
+
+=== KR10A security remote control support ===
+
+I wouldn't recommend relying on an X10 based system for securing a house or business, so let's take
+the 'security' in their name with a grain of salt. But again, these little remotes are very cheap, fit
+on a keychain and can send 5 different command for whatever you wish to use it for.
+
+The message for these remotes looks like this:
+
+  {:device_type=>"DS10A", :address=>"5c", :mode=>"ARM" }
+
+The only attribute that isn't self explanatory is :mode, which can have values
+'ARM', 'DISARM', 'PANIC', 'LIGHTS_ON' or 'LIGHTS_OFF', corresponding with the button labels on the remote control.
+
+=== Support for other devices ===
+
+I haven't tested this library with any X10 devices not mentioned above. However, there's a good chance
+that your X10 transmitter will just work, or at least partially.
+If it doesn't, there's three different approaches you can take:
+* Fork this project and add your own support (I'd be happy to merge your updates back into this
+project so please let me know if you do so)
+* contact me directly, I may be willing to help out
+* there's an optional parameter in the contructor that you can use to extend the receiver's functionality.
+You can use your own message parser (let's say yours is called 'MyOwnParser') as follows:
+
+  W800rf32Receiver.new("/dev/ttyS2", :parsers => [GenericX10Parser.new, Ds10aParser.new, Kr10aParser.new, MyOwnParser.new])
+
+Your parser class will need to implement the methods 'valid_packet?' and 'process_packet'.
+For examples simply look at the other implementations. You can also remove other parser instances from the parsers
+array (or change their order) if one of them is processing packets that should be intended for our message parser.
+
+=== Some final thoughts ===
+
+This is my first gem, and only a first step in building a more extensive framework for communication with and
+controlling a variety of devices in my house. My next step will probably be to add support for controlling
+X10 devices through a CM10A.
+I've been using MisterHouse for many years but would really love to see a Ruby based home automation framework.
+I can imagine developing a simple but powerful DSL for automation scripting and this framework could make great
+use of Ruby's meta-programming capabilities as well. Also Perl is becoming a less and less common skill for
+developers, and a Ruby based framework could potentially reach a larger community of home automation hackers.
+
+My blog can be read at www.sfpeter.com and I will probably report on my ideas/progress there long before you'll find any
+code on Github.
+
+If you have specific ideas in this space or would be interested in contributing to such a project, feel free
+to contact me at phulst@sbcglobal.net .
 
 == Note on Patches/Pull Requests
  
