@@ -4,6 +4,7 @@ This library will allow you to easily communicate with a w800rf32 X10 receiver u
 serial connection. This will make it very easy to write ruby code that should do certain things
 on input from (cheap) wireless remote controls and sensors.
 
+
 From the wgldesigns.com website:
 
 "The W800 family of RF receivers are designed to receive X10 RF signals generated from X10 products:
